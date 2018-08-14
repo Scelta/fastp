@@ -155,7 +155,7 @@ bool Options::validate() {
     if(split.enabled ) {
         if(split.digits < 0 || split.digits > 10)
             error_exit("you have enabled splitting output to multiple files, the digits number of file name prefix (--split_prefix_digits) should be 0 ~ 10.");
-        
+
         if(split.byFileNumber) {
             if(split.number < 2 || split.number >= 1000)
                 error_exit("you have enabled splitting output by file number, the number of files (--split) should be 2 ~ 999.");
@@ -175,6 +175,14 @@ bool Options::validate() {
             error_exit("the sliding window size for cutting by quality (--cut_window_size) should be between 2~10.");
         if(qualityCut.quality < 1 || qualityCut.quality > 30)
             error_exit("the mean quality requirement for cutting by quality (--cut_mean_quality) should be 1 ~ 30, suggest 15 ~ 20.");
+    }
+    if(qualityCut.enabledOA) {
+        if(qualityCut.windowSize < 30 || qualityCut.windowSize > 100)
+            error_exit("the sliding window size for cutting by OA (--cut_window_size) should be between 30~100.");
+        if(qualityCut.OAsqual < 1 || qualityCut.OAsqual > 40)
+            error_exit("the seed quality requirement for cutting by OA (--cut_OA_seed_quality) should be 1 ~ 40, suggest 30 ~ 40.");
+        if(qualityCut.OAfqual < 1 || qualityCut.OAfqual > 40)
+            error_exit("the fragment quality requirement for cutting by OA (--cut_OA_frag_quality) should be 1 ~ 40, suggest 20 ~ 30.");
     }
 
     if(adapter.sequence!="auto" && !adapter.sequence.empty()) {

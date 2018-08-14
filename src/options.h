@@ -120,6 +120,9 @@ public:
         enabled3 = false;
         windowSize = 4;
         quality = 20;
+        enabledOA = false;
+        OAsqual = 30;
+        OAfqual = 20;
     }
 public:
     // enable 5' cutting by quality
@@ -130,6 +133,13 @@ public:
     int windowSize;
     // the mean quality requirement for cutting by quality
     int quality;
+    // enable cutting by OA
+    bool enabledOA;
+    // the overall accuracy requirement for seed
+    int OAsqual;
+    // the overall accuracy requirement for extended fragment
+    int OAfqual;
+
 };
 
 class SplitOptions {

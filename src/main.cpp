@@ -59,7 +59,7 @@ int main(int argc, char* argv[]){
     cmd.add("trim_poly_g", 'g', "force polyG tail trimming, by default trimming is automatically enabled for Illumina NextSeq/NovaSeq data");
     cmd.add<int>("poly_g_min_len", 0, "the minimum length to detect polyG in the read tail. 10 by default.", false, 10);
     cmd.add("disable_trim_poly_g", 'G', "disable polyG tail trimming, by default trimming is automatically enabled for Illumina NextSeq/NovaSeq data");
-    
+
     // polyX tail trimming
     cmd.add("trim_poly_x", 'x', "enable polyX trimming in 3' ends.");
     cmd.add<int>("poly_x_min_len", 0, "the minimum length to detect polyX in the read tail. 10 by default.", false, 10);
@@ -69,6 +69,11 @@ int main(int argc, char* argv[]){
     cmd.add("cut_by_quality3", '3', "enable per read cutting by quality in tail (3'), default is disabled (WARNING: this will interfere deduplication for SE data)");
     cmd.add<int>("cut_window_size", 'W', "the size of the sliding window for sliding window trimming, default is 4", false, 4);
     cmd.add<int>("cut_mean_quality", 'M', "the bases in the sliding window with mean quality below cutting_quality will be cut, default is Q20", false, 20);
+
+    // sliding window cutting by OA
+    cmd.add("cut_by_OA", 'B', "enable per read cutting by overall accuracy, default is disabled (WARNING: this will interfere deduplication for both PE/SE data)");
+    cmd.add<int>("cut_OA_seed_quality", 0, "the seed/window keep sliding until the bases inside with accumulated accurracy above it, default is 30 (Q30, 99.9% accuracy)", false, 30);
+    cmd.add<int>("cut_OA_frag_quality", 0, "the sliding window will keep extending until the bases inside with accumulated accurracy below it, default is 20 (Q20, 99% accuracy)", false, 20);
 
     // quality filtering
     cmd.add("disable_quality_filtering", 'Q', "quality filtering is enabled by default. If this option is specified, quality filtering is disabled");
@@ -89,7 +94,7 @@ int main(int argc, char* argv[]){
     cmd.add<string>("filter_by_index1", 0, "specify a file contains a list of barcodes of index1 to be filtered out, one barcode per line", false, "");
     cmd.add<string>("filter_by_index2", 0, "specify a file contains a list of barcodes of index2 to be filtered out, one barcode per line", false, "");
     cmd.add<int>("filter_by_index_threshold", 0, "the allowed difference of index barcode for index filtering, default 0 means completely identical.", false, 0);
-    
+
     // base correction in overlapped regions of paired end data
     cmd.add("correction", 'c', "enable base correction in overlapped regions (only for PE data), default is disabled");
     cmd.add<int>("overlap_len_require", 0, "the minimum length of the overlapped region for overlap analysis based adapter trimming and correction. 30 by default.", false, 30);
@@ -105,7 +110,7 @@ int main(int argc, char* argv[]){
     // overrepresented sequence analysis
     cmd.add("overrepresentation_analysis", 'p', "enable overrepresented sequence analysis.");
     cmd.add<int>("overrepresentation_sampling", 'P', "one in (--overrepresentation_sampling) reads will be computed for overrepresentation analysis (1~10000), smaller is slower, default is 20.", false, 20);
-    
+
     // reporting
     cmd.add<string>("json", 'j', "the json format report file name", false, "fastp.json");
     cmd.add<string>("html", 'h', "the html format report file name", false, "fastp.html");
@@ -184,8 +189,13 @@ int main(int argc, char* argv[]){
     opt.qualityCut.enabled3 = cmd.exist("cut_by_quality3");
     opt.qualityCut.windowSize = cmd.get<int>("cut_window_size");
     opt.qualityCut.quality = cmd.get<int>("cut_mean_quality");
+    // sliding window cutting by overall accuracy
+    opt.qualityCut.enabledOA = cmd.exist("cut_by_OA");
+    opt.qualityCut.OAsqual = cmd.get<int>("cut_OA_seed_quality");
+    opt.qualityCut.OAfqual = cmd.get<int>("cut_OA_frag_quality");
+
     // raise a warning if -5/-3 is not enabled but -W/-M is enabled
-    if(cmd.exist("cut_window_size") && !opt.qualityCut.enabled5 && !opt.qualityCut.enabled3) {
+    if(cmd.exist("cut_window_size") && !opt.qualityCut.enabled5 && !opt.qualityCut.enabled3 && !opt.qualityCut.enabledOA) {
         cerr << "WARNING: you've specified sliding window size (-W/--cut_window_size), but you haven't enabled per read cutting by quality for 5'(-5/--cut_by_quality5) or 3' (-3/--cut_by_quality3), so quality cutting is ignored " << endl << endl;
     } else if(cmd.exist("cut_mean_quality") && !opt.qualityCut.enabled5 && !opt.qualityCut.enabled3) {
         cerr << "WARNING: you've specified sliding window mean quality requirement (-M/--cut_mean_quality), but you haven't enabled per read cutting by quality for 5'(-5/--cut_by_quality5) or 3' (-3/--cut_by_quality3), so quality cutting is ignored "<<endl << endl;
@@ -354,7 +364,7 @@ int main(int argc, char* argv[]){
 
     Processor p(&opt);
     p.process();
-    
+
     time_t t2 = time(NULL);
 
     cerr << endl << "JSON report: " << opt.jsonFile << endl;
