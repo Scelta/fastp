@@ -72,8 +72,8 @@ int main(int argc, char* argv[]){
 
     // sliding window cutting by OA
     cmd.add("cut_by_OA", 'B', "enable per read cutting by overall accuracy, default is disabled (WARNING: this will interfere deduplication for both PE/SE data)");
-    cmd.add<int>("cut_OA_seed_quality", 0, "the seed/window keep sliding until the bases inside with accumulated accurracy above it, default is 30 (Q30, 99.9% accuracy)", false, 30);
-    cmd.add<int>("cut_OA_frag_quality", 0, "the sliding window will keep extending until the bases inside with accumulated accurracy below it, default is 20 (Q20, 99% accuracy)", false, 20);
+    cmd.add<int>("cut_OA_seed_quality", 0, "the seed/window keep sliding until the bases inside with accumulated accurracy above it, default is 30 (Q20, 99% accuracy)", false, 20);
+    cmd.add<int>("cut_OA_frag_quality", 0, "the sliding window will keep extending until the bases inside with accumulated accurracy below it, default is 20 (Q10, 90% accuracy)", false, 10);
 
     // quality filtering
     cmd.add("disable_quality_filtering", 'Q', "quality filtering is enabled by default. If this option is specified, quality filtering is disabled");

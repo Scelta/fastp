@@ -20,6 +20,7 @@ public:
     bool filterByIndex(Read* r);
     bool filterByIndex(Read* r1, Read* r2);
     static bool test();
+    static bool testOA();
 
 private:
     bool match(vector<string>& list, string target, int threshold);

@@ -21,6 +21,7 @@ void UnitTest::run(){
     passed &= report(Read::test(), "Read::test");
     passed &= report(OverlapAnalysis::test(), "OverlapAnalysis::test");
     passed &= report(Filter::test(), "Filter::test");
+    passed &= report(Filter::testOA(), "Filter::testOA");
     passed &= report(AdapterTrimmer::test(), "AdapterTrimmer::test");
     passed &= report(BaseCorrector::test(), "BaseCorrector::test");
     passed &= report(PolyX::test(), "PolyX::test");

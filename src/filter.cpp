@@ -164,13 +164,22 @@ Read* Filter::trimAndCut(Read* r, int front, int tail) {
 
     // quality cutting by Overall Accuracy
     if(mOptions->qualityCut.enabledOA) {
+        int qualScore[rlen];
+        //Table obtained by lg(1-10^(-PhedQuality/10))*1e10)
         const double Accstr[50] = {
-          -1.00000000, -0.68682512, -0.43292312, -0.30206212, -0.22048112, -0.16508912, -0.12562812, -0.09665312, -0.07494012, -0.05843512,
-          -0.04575712, -0.03594512, -0.02830512, -0.02233112, -0.01764312, -0.01395512, -0.01104812, -0.00875312, -0.00693812, -0.00550212,
-          -0.00436512, -0.00346312, -0.00274912, -0.00218212, -0.00173212, -0.00137612, -0.00109212, -0.00086712, -0.00068912, -0.00054712,
-          -0.00043512, -0.00034512, -0.00027412, -0.00021812, -0.00017312, -0.00013712, -0.00010912, -0.00008712, -0.00006912, -0.00005512,
-          -0.00004312, -0.00003412, -0.00002712, -0.00002212, -0.00001712, -0.00001412, -0.00001112, -0.00000912, -0.00000712, -0.00000512};
+          -1.0000000, -0.6868253, -0.4329234, -0.3020624, -0.2204808,
+          -0.1650885, -0.1256276, -0.0966529, -0.0749404, -0.0584352,
+          -0.0457575, -0.0359445, -0.0283048, -0.0223307, -0.0176431,
+          -0.0139554, -0.0110483, -0.0087529, -0.0069382, -0.0055022,
+          -0.0043648, -0.0034635, -0.0027489, -0.0021821, -0.0017324,
+          -0.0013755, -0.0010923, -0.0008674, -0.0006889, -0.0005471,
+          -0.0004345, -0.0003451, -0.0002741, -0.0002177, -0.0001729,
+          -0.0001374, -0.0001091, -0.0000867, -0.0000688, -0.0000547,
+          -0.0000434, -0.0000345, -0.0000274, -0.0000218, -0.0000173,
+          -0.0000137, -0.0000109, -0.0000087, -0.0000069, -0.0000055};
 
+        for(int i=0;i<rlen;i++)
+            qualScore[i]=qualstr[i]-33;
         double OAseedAcc = Accstr[mOptions->qualityCut.OAsqual];
         double OAfragAcc = Accstr[mOptions->qualityCut.OAfqual];
         int s = front;
@@ -179,37 +188,42 @@ Read* Filter::trimAndCut(Read* r, int front, int tail) {
             return NULL;
 
         double seedAcc[l - front - tail - w];
+        seedAcc[0] = 0;
 
         // preparing 1st seed
         for(int i=0; i<w-1; i++)
-            seedAcc[s] += Accstr[qualstr[s+i]];
+            seedAcc[s] += Accstr[qualScore[s+i]];
 
         // Rolling to find a better seed
+
         while(seedAcc[s] < OAseedAcc && s+w<l-tail){
             s++;
-            seedAcc[s] = seedAcc[s-1] + Accstr[qualstr[s+w-1]] - Accstr[qualstr[s-1]];
-            the_s = (seedAcc[s] > seedAcc[s-1])?s:s-1;
+            seedAcc[s] = seedAcc[s-1] + Accstr[qualScore[s+w-1]] - Accstr[qualScore[s-1]];
+            the_s = (seedAcc[s] > seedAcc[the_s])?s:the_s;
         }
 
         // Extend the fragment's tail
         double fragAcc = seedAcc[the_s];
         int f=the_s;
         double ignore_the_lowest_acc = 0;
-        while(fragAcc > OAfragAcc && f+w<l-tail){
+        double nextFragAcc = fragAcc + Accstr[qualScore[f+w]];
+
+        while(nextFragAcc > OAfragAcc && f+1+w<l-tail){
             f++;
-            if(Accstr[qualstr[f+w-1]] < ignore_the_lowest_acc){
-                fragAcc += ignore_the_lowest_acc;
-                ignore_the_lowest_acc = Accstr[qualstr[f+w-1]];
+            fragAcc = nextFragAcc;
+            if(Accstr[qualScore[f+w]] < ignore_the_lowest_acc){
+                nextFragAcc += ignore_the_lowest_acc;
+                ignore_the_lowest_acc = Accstr[qualScore[f+w]];
             }else{
-                fragAcc += Accstr[qualstr[f+w-1]];
+                nextFragAcc += Accstr[qualScore[f+w]];
             }
         }
         // Discard if accuracy is too low
-        if(fragAcc < OAfragAcc)
+        if(f+1+w >= l-tail && fragAcc < OAfragAcc)
             return NULL;
         // Dtermine the front and length
         front = the_s;
-        rlen = f - s + w;
+        rlen = f - the_s + w;
     }
 
     if(rlen <= 0 || front >= l-1)
@@ -273,4 +287,24 @@ bool Filter::test() {
 
     return ret->mSeq.mStr == "CCCCCCCCCCCCCCCCCCCCCCCCCCCC"
         && ret->mQuality == "CCCCCCCCCCC////CCCCCCCCCCCCC";
+}
+
+bool Filter::testOA() {
+    Read r("@name",
+        "TTTTAACCCCCCCCCCCCCCCCCCCCCCCCCCCCAATTTT",
+        "+",
+        "/////CCCCCCCCCCCC////CCCCCCCCCCCCCC////E");
+    Options opt;
+    opt.qualityCut.enabled5 = false;
+    opt.qualityCut.enabled3 = false;
+    opt.qualityCut.enabledOA = true;
+    opt.qualityCut.windowSize = 10;
+    opt.qualityCut.OAsqual = 20;
+    opt.qualityCut.OAfqual = 10;
+    Filter filter(&opt);
+    Read* ret = filter.trimAndCut(&r, 0, 1);
+    ret->print();
+
+    return ret->mSeq.mStr == "ACCCCCCCCCCCCCCC"
+        && ret->mQuality  == "CCCCCCCCCCCC////";
 }
