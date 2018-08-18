@@ -180,6 +180,7 @@ Read* Filter::trimAndCut(Read* r, int front, int tail) {
 
         for(int i=0;i<rlen;i++)
             qualScore[i]=qualstr[i]-33;
+
         double OAseedAcc = Accstr[mOptions->qualityCut.OAsqual];
         double OAfragAcc = Accstr[mOptions->qualityCut.OAfqual];
         int s = front;
@@ -191,7 +192,7 @@ Read* Filter::trimAndCut(Read* r, int front, int tail) {
         seedAcc[0] = 0;
 
         // preparing 1st seed
-        for(int i=0; i<w-1; i++)
+        for(int i=0; i<w; i++)
             seedAcc[s] += Accstr[qualScore[s+i]];
 
         // Rolling to find a better seed
@@ -206,24 +207,28 @@ Read* Filter::trimAndCut(Read* r, int front, int tail) {
         double fragAcc = seedAcc[the_s];
         int f=the_s;
         double ignore_the_lowest_acc = 0;
-        double nextFragAcc = fragAcc + Accstr[qualScore[f+w]];
+        double theFragAcc = fragAcc;
 
-        while(nextFragAcc > OAfragAcc && f+1+w<l-tail){
-            f++;
-            fragAcc = nextFragAcc;
+        while(f+w<l-tail){
             if(Accstr[qualScore[f+w]] < ignore_the_lowest_acc){
-                nextFragAcc += ignore_the_lowest_acc;
+                theFragAcc += ignore_the_lowest_acc;
                 ignore_the_lowest_acc = Accstr[qualScore[f+w]];
             }else{
-                nextFragAcc += Accstr[qualScore[f+w]];
+                theFragAcc += Accstr[qualScore[f+w]];
             }
+
+            if (theFragAcc <= OAfragAcc)
+                break;
+
+            f++;
+            fragAcc = theFragAcc;
         }
         // Discard if accuracy is too low
         if(f+1+w >= l-tail && fragAcc < OAfragAcc)
             return NULL;
         // Dtermine the front and length
         front = the_s;
-        rlen = f - the_s + w;
+        rlen = f - the_s + w + 1;
     }
 
     if(rlen <= 0 || front >= l-1)
