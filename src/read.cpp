@@ -80,11 +80,16 @@ void Read::resize(int len) {
 	mSeq.mStr.resize(len);
 	mQuality.resize(len);
 }
-   
+
 void Read::trimFront(int len){
 	len = min(length()-1, len);
 	mSeq.mStr = mSeq.mStr.substr(len, mSeq.mStr.length() - len);
 	mQuality = mQuality.substr(len, mQuality.length() - len);
+}
+
+void Read::keepFront(int len){
+	mSeq.mStr = mSeq.mStr.substr(0, len);
+	mQuality = mQuality.substr(0, len);
 }
 
 string Read::lastIndex(){

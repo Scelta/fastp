@@ -9,6 +9,10 @@
 
 using namespace std;
 
+#define STLFR_LOC_NONE 0
+#define STLFR_LOC_READ1 1
+#define STLFR_LOC_READ2 2
+
 #define UMI_LOC_NONE 0
 #define UMI_LOC_INDEX1 1
 #define UMI_LOC_INDEX2 2
@@ -85,6 +89,28 @@ public:
 public:
     bool enabled;
     int minLen;
+};
+
+class stlfrOptions {
+public:
+    stlfrOptions() {
+        enabled = false;
+        file;
+        loc = STLFR_LOC_NONE;
+        length = 0;
+        pos1;
+        pos2;
+        pos3;
+    }
+public:
+    bool enabled;
+    string file;
+    int loc;
+    int length;
+    int pos1;
+    int pos2;
+    int pos3;
+    string separator;
 };
 
 class UMIOptions {
@@ -296,6 +322,8 @@ public:
     QualityCutOptions qualityCut;
     // options for base correction
     CorrectionOptions correction;
+    // options for stlfr
+    stlfrOptions stlfr;
     // options for UMI
     UMIOptions umi;
     // 3' end polyG trimming, default for Illumina NextSeq/NovaSeq

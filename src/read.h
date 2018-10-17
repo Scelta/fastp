@@ -30,6 +30,7 @@ public:
     void resize(int len);
     void convertPhred64To33();
     void trimFront(int len);
+		void keepFront(int len);
 
 public:
     static bool test();

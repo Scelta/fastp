@@ -12,6 +12,7 @@
 #include "options.h"
 #include "threadconfig.h"
 #include "filter.h"
+#include "stlfr.h"
 #include "umiprocessor.h"
 #include "overlapanalysis.h"
 #include "writerthread.h"
@@ -73,6 +74,7 @@ private:
     gzFile mZipFile2;
     ofstream* mOutStream1;
     ofstream* mOutStream2;
+    stlfr* mStlfrProcessor;
     UmiProcessor* mUmiProcessor;
     long* mInsertSizeHist;
     WriterThread* mLeftWriter;

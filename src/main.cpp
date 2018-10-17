@@ -9,6 +9,7 @@
 #include "processor.h"
 #include "evaluator.h"
 
+
 // TODO: code refactoring to remove these global variables
 string command;
 mutex logmtx;
@@ -99,6 +100,14 @@ int main(int argc, char* argv[]){
     cmd.add("correction", 'c', "enable base correction in overlapped regions (only for PE data), default is disabled");
     cmd.add<int>("overlap_len_require", 0, "the minimum length of the overlapped region for overlap analysis based adapter trimming and correction. 30 by default.", false, 30);
     cmd.add<int>("overlap_diff_limit", 0, "the maximum difference of the overlapped region for overlap analysis based adapter trimming and correction. 5 by default.", false, 5);
+
+    // stLFR
+    cmd.add<string>("stLFR_barcode_file", 'b',"A stLFR barcode list(if used)",false,"");
+    cmd.add<string>("stLFR_loc", 0, "specify the location of stLFR barcode, can be (read1/read2), default is read2", false, "read2");
+    cmd.add<int>("stLFR_pos1", 0, "specify start base position of the 1st stLFR barcode, default is 100", false, 100);
+    cmd.add<int>("stLFR_pos2", 0, "specify start base position of the 2nd stLFR barcode, default is 116", false, 116);
+    cmd.add<int>("stLFR_pos3", 0, "specify start base position of the 3rd stLFR barcode,could be 132 or 144, default is 144", false, 132);
+    cmd.add<int>("stLFR_len", 0, "if the stLFR barcode is in read1/read2, its length should be provided", false, 10);
 
     // umi
     cmd.add("umi", 'U', "enable unique molecular identifer (UMI) preprocessing");
@@ -254,6 +263,34 @@ int main(int argc, char* argv[]){
         if(opt.split.needEvaluation) {
             error_exit("Splitting by file number is not supported in STDIN mode");
         }
+    }
+
+    // stLFR
+    if(cmd.exist("stLFR_barcode_file")){
+      opt.stlfr.enabled = true;
+      opt.stlfr.file = cmd.get<string>("stLFR_barcode_file");
+      string stlfrLoc = cmd.get<string>("stLFR_loc");
+      str2lower(stlfrLoc);
+      if(stlfrLoc.empty())
+          error_exit("You've enabled stlfr function by (--stLFR_barcode_file), you should specify the stlfr location by (--stlfr_loc)");
+      if(stlfrLoc != "read1" && stlfrLoc != "read2") {
+          error_exit("stlfr location can only be read1 or read2");
+      }
+      if(!opt.isPaired() && stlfrLoc == "read2" )
+          error_exit("You specified the stlfr location as " + stlfrLoc + ", but the input data is not paired end.");
+
+      opt.stlfr.length = cmd.get<int>("stLFR_len");
+      if(opt.stlfr.length == 0 && (stlfrLoc == "read1" || stlfrLoc == "read2"))
+          error_exit("You specified the stlfr location as " + stlfrLoc + ", but the length is not specified (--stlfr_len).");
+      if(stlfrLoc == "read1") {
+          opt.stlfr.loc = STLFR_LOC_READ1;
+      } else if(stlfrLoc == "read2") {
+          opt.stlfr.loc = STLFR_LOC_READ2;
+      }
+
+      opt.stlfr.pos1 = cmd.get<int>("stLFR_pos1");
+      opt.stlfr.pos2 = cmd.get<int>("stLFR_pos2");
+      opt.stlfr.pos3 = cmd.get<int>("stLFR_pos3");
     }
 
     // umi

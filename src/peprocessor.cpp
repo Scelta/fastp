@@ -21,6 +21,7 @@ PairEndProcessor::PairEndProcessor(Options* opt){
     mZipFile1 = NULL;
     mOutStream2 = NULL;
     mZipFile2 = NULL;
+    mStlfrProcessor = new stlfr(opt);
     mUmiProcessor = new UmiProcessor(opt);
 
     int isizeBufLen = mOptions->insertSizeMax + 1;
@@ -46,7 +47,7 @@ PairEndProcessor::~PairEndProcessor() {
 void PairEndProcessor::initOutput() {
     if(mOptions->out1.empty() || mOptions->out2.empty())
         return;
-    
+
     mLeftWriter = new WriterThread(mOptions, mOptions->out1);
     mRightWriter = new WriterThread(mOptions, mOptions->out2);
 }
@@ -74,6 +75,11 @@ void PairEndProcessor::initConfig(ThreadConfig* config) {
 bool PairEndProcessor::process(){
     if(!mOptions->split.enabled)
         initOutput();
+
+    //preload barcode list for stLFR searching
+    if(mOptions->stlfr.enabled){
+      mStlfrProcessor->ReadBarcodeList(mOptions->stlfr.file.c_str());
+    }
 
     initPackRepository();
     std::thread producer(std::bind(&PairEndProcessor::producerTask, this));
@@ -252,7 +258,10 @@ bool PairEndProcessor::processPairEnd(ReadPairPack* pack, ThreadConfig* config){
             delete pair;
             continue;
         }
-
+        // stLFR barcode splitting
+        if(mOptions->stlfr.enabled){
+          mStlfrProcessor->process(or1,or2);
+        }
         // umi processing
         if(mOptions->umi.enabled)
             mUmiProcessor->process(or1, or2);
@@ -301,7 +310,7 @@ bool PairEndProcessor::processPairEnd(ReadPairPack* pack, ThreadConfig* config){
         config->addFilterResult(max(result1, result2));
 
         if( r1 != NULL &&  result1 == PASS_FILTER && r2 != NULL && result2 == PASS_FILTER ) {
-            
+
             if(mOptions->outputToSTDOUT) {
                 interleaved += r1->toString() + r2->toString();
             } else {
@@ -367,7 +376,7 @@ bool PairEndProcessor::processPairEnd(ReadPairPack* pack, ThreadConfig* config){
 
     return true;
 }
-    
+
 void PairEndProcessor::statInsertSize(Read* r1, Read* r2, OverlapResult& ov) {
     int isize = mOptions->insertSizeMax;
     if(ov.overlapped) {
@@ -393,7 +402,7 @@ void PairEndProcessor::initPackRepository() {
     memset(mRepo.packBuffer, 0, sizeof(ReadPairPack*)*PACK_NUM_LIMIT);
     mRepo.writePos = 0;
     mRepo.readPos = 0;
-    
+
 }
 
 void PairEndProcessor::destroyPackRepository() {
@@ -468,7 +477,7 @@ void PairEndProcessor::producerTask()
     bool needToBreak = false;
     while(true){
         ReadPair* read = reader.read();
-        // TODO: put needToBreak here is just a WAR for resolve some unidentified dead lock issue 
+        // TODO: put needToBreak here is just a WAR for resolve some unidentified dead lock issue
         if(!read || needToBreak){
             // the last pack
             ReadPairPack* pack = new ReadPairPack;
@@ -587,7 +596,7 @@ void PairEndProcessor::consumerTask(ThreadConfig* config)
         if(mRightWriter)
             mRightWriter->setInputCompleted();
     }
-    
+
     if(mOptions->verbose) {
         string msg = "thread " + to_string(config->getThreadId() + 1) + " finished";
         loginfo(msg);

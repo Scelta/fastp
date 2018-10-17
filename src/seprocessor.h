@@ -12,6 +12,7 @@
 #include "options.h"
 #include "threadconfig.h"
 #include "filter.h"
+#include "stlfr.h"
 #include "umiprocessor.h"
 #include "writerthread.h"
 #include "duplicate.h"
