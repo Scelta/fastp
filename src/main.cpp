@@ -106,7 +106,7 @@ int main(int argc, char* argv[]){
     cmd.add<string>("stLFR_loc", 0, "specify the location of stLFR barcode, can be (read1/read2), default is read2", false, "read2");
     cmd.add<int>("stLFR_pos1", 0, "specify start base position of the 1st stLFR barcode, default is 100", false, 100);
     cmd.add<int>("stLFR_pos2", 0, "specify start base position of the 2nd stLFR barcode, default is 116", false, 116);
-    cmd.add<int>("stLFR_pos3", 0, "specify start base position of the 3rd stLFR barcode,could be 132 or 144, default is 144", false, 132);
+    cmd.add<int>("stLFR_pos3", 0, "specify start base position of the 3rd stLFR barcode,could be 132 or 144, default is 144", false, 144);
     cmd.add<int>("stLFR_len", 0, "if the stLFR barcode is in read1/read2, its length should be provided", false, 10);
 
     // umi
