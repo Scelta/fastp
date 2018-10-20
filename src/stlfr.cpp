@@ -2,7 +2,6 @@
 
 stringmap sfLFRbarcodeMap, sfLFRbarcodeSnpMap;
 intmap missScore, stlfrLog;
-char stlfrBarcodeTag[16];
 
 stlfr::stlfr(Options* opt){
     mOptions = opt;
@@ -78,7 +77,10 @@ void stlfr::findBarcode(Read* r) {
   }
   //printf("%d\t%d\t%d\n",stlfrBarcodeLabels[0],stlfrBarcodeLabels[1],stlfrBarcodeLabels[2]);
   //sprintf(tag,"%8s",itoa(stlfrBarcodeLabels[0]));
+  char stlfrBarcodeTag[16];
   sprintf(stlfrBarcodeTag, "%04d_%04d_%04d",stlfrBarcodeLabels[0],stlfrBarcodeLabels[1],stlfrBarcodeLabels[2]);
+  r->mSTLFR = stlfrBarcodeTag;
+  addstlfrToName(r, stlfrBarcodeTag);
   //printf("Print stlfrBarcodeTag: %s\n",stlfrBarcodeTag);
 }
 
@@ -95,14 +97,9 @@ void stlfr::process(Read* r1, Read* r2) {
   }
   else if(mOptions->stlfr.loc == STLFR_LOC_READ2 && r2){
       findBarcode(r2);
+      addstlfrToName(r1, r2->mSTLFR);
       r2->keepFront(mOptions->stlfr.pos1);
   }
-
-  addstlfrToName(r1, stlfrBarcodeTag);
-  if(r2){
-      addstlfrToName(r2, stlfrBarcodeTag);
-  }
-
 }
 
 void stlfr::addstlfrToName(Read* r, string stlfr){

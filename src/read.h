@@ -43,6 +43,7 @@ public:
 	Sequence mSeq;
 	string mStrand;
 	string mQuality;
+	string mSTLFR;
 	bool mHasQuality;
 };
 
