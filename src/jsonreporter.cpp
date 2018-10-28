@@ -21,7 +21,8 @@ void JsonReporter::setInsertHist(long* insertHist, int insertSizePeak) {
 }
 
 extern string command;
-void JsonReporter::report(FilterResult* result, Stats* preStats1, Stats* postStats1, Stats* preStats2, Stats* postStats2) {
+void JsonReporter::report(FilterResult* result, Stats* preStats1, Stats* postStats1,
+  Stats* preStats2, Stats* postStats2, stlfr* stlfrStats) {
     ofstream ofs;
     ofs.open(mOptions->jsonFile, ifstream::out);
     ofs << "{" << endl;
@@ -70,29 +71,29 @@ void JsonReporter::report(FilterResult* result, Stats* preStats1, Stats* postSta
     ofs << "\t" << "\"summary\": {" << endl;
 
     ofs << "\t\t" << "\"before_filtering\": {" << endl;
-    ofs << "\t\t\t" << "\"total_reads\":" << pre_total_reads << "," << endl; 
-    ofs << "\t\t\t" << "\"total_bases\":" << pre_total_bases << "," << endl; 
-    ofs << "\t\t\t" << "\"q20_bases\":" << pre_q20_bases << "," << endl; 
-    ofs << "\t\t\t" << "\"q30_bases\":" << pre_q30_bases << "," << endl; 
-    ofs << "\t\t\t" << "\"q20_rate\":" << (pre_total_bases == 0?0.0:(double)pre_q20_bases / (double)pre_total_bases) << "," << endl; 
-    ofs << "\t\t\t" << "\"q30_rate\":" << (pre_total_bases == 0?0.0:(double)pre_q30_bases / (double)pre_total_bases) << "," << endl; 
+    ofs << "\t\t\t" << "\"total_reads\":" << pre_total_reads << "," << endl;
+    ofs << "\t\t\t" << "\"total_bases\":" << pre_total_bases << "," << endl;
+    ofs << "\t\t\t" << "\"q20_bases\":" << pre_q20_bases << "," << endl;
+    ofs << "\t\t\t" << "\"q30_bases\":" << pre_q30_bases << "," << endl;
+    ofs << "\t\t\t" << "\"q20_rate\":" << (pre_total_bases == 0?0.0:(double)pre_q20_bases / (double)pre_total_bases) << "," << endl;
+    ofs << "\t\t\t" << "\"q30_rate\":" << (pre_total_bases == 0?0.0:(double)pre_q30_bases / (double)pre_total_bases) << "," << endl;
     ofs << "\t\t\t" << "\"read1_mean_length\":" << preStats1->getMeanLength() << "," << endl;
     if(mOptions->isPaired())
         ofs << "\t\t\t" << "\"read2_mean_length\":" << preStats2->getMeanLength() << "," << endl;
-    ofs << "\t\t\t" << "\"gc_content\":" << (pre_total_bases == 0?0.0:(double)pre_total_gc / (double)pre_total_bases)  << endl; 
+    ofs << "\t\t\t" << "\"gc_content\":" << (pre_total_bases == 0?0.0:(double)pre_total_gc / (double)pre_total_bases)  << endl;
     ofs << "\t\t" << "}," << endl;
 
     ofs << "\t\t" << "\"after_filtering\": {" << endl;
-    ofs << "\t\t\t" << "\"total_reads\":" << post_total_reads << "," << endl; 
-    ofs << "\t\t\t" << "\"total_bases\":" << post_total_bases << "," << endl; 
-    ofs << "\t\t\t" << "\"q20_bases\":" << post_q20_bases << "," << endl; 
-    ofs << "\t\t\t" << "\"q30_bases\":" << post_q30_bases << "," << endl; 
-    ofs << "\t\t\t" << "\"q20_rate\":" << (post_total_bases == 0?0.0:(double)post_q20_bases / (double)post_total_bases) << "," << endl; 
-    ofs << "\t\t\t" << "\"q30_rate\":" << (post_total_bases == 0?0.0:(double)post_q30_bases / (double)post_total_bases) << "," << endl; 
+    ofs << "\t\t\t" << "\"total_reads\":" << post_total_reads << "," << endl;
+    ofs << "\t\t\t" << "\"total_bases\":" << post_total_bases << "," << endl;
+    ofs << "\t\t\t" << "\"q20_bases\":" << post_q20_bases << "," << endl;
+    ofs << "\t\t\t" << "\"q30_bases\":" << post_q30_bases << "," << endl;
+    ofs << "\t\t\t" << "\"q20_rate\":" << (post_total_bases == 0?0.0:(double)post_q20_bases / (double)post_total_bases) << "," << endl;
+    ofs << "\t\t\t" << "\"q30_rate\":" << (post_total_bases == 0?0.0:(double)post_q30_bases / (double)post_total_bases) << "," << endl;
     ofs << "\t\t\t" << "\"read1_mean_length\":" << postStats1->getMeanLength() << "," << endl;
     if(mOptions->isPaired())
         ofs << "\t\t\t" << "\"read2_mean_length\":" << postStats2->getMeanLength() << "," << endl;
-    ofs << "\t\t\t" << "\"gc_content\":" << (post_total_bases == 0?0.0:(double)post_total_gc / (double)post_total_bases)  << endl; 
+    ofs << "\t\t\t" << "\"gc_content\":" << (post_total_bases == 0?0.0:(double)post_total_gc / (double)post_total_bases)  << endl;
     ofs << "\t\t" << "}";
 
     ofs << endl;
@@ -163,6 +164,12 @@ void JsonReporter::report(FilterResult* result, Stats* preStats1, Stats* postSta
     if(postStats2) {
         ofs << "\t" << "\"read2_after_filtering\": " ;
         postStats2 -> reportJson(ofs, "\t");
+    }
+
+    //Report stLFR barcodes frequency
+    if(stlfrStats) {
+      ofs << "\t" << "\"stLFR_barcodes_frequency\": " ;
+      stlfrStats -> reportJson(ofs, "\t");
     }
 
     ofs << "\t\"command\": " << "\"" << command << "\"" << endl;

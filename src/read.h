@@ -44,6 +44,9 @@ public:
 	string mStrand;
 	string mQuality;
 	string mSTLFR;
+		int stlfrB1;
+		int stlfrB2;
+		int stlfrB3;
 	bool mHasQuality;
 };
 

@@ -59,7 +59,7 @@ private:
     bool mIsRead2;
     long mReads;
     int mEvaluatedSeqLen;
-    /* 
+    /*
     why we use 8 here?
     map A/T/C/G/N to 0~7 by their ASCII % 8:
     'A' % 8 = 1

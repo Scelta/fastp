@@ -95,16 +95,17 @@ class stlfrOptions {
 public:
     stlfrOptions() {
         enabled = false;
-        file;
+        file = "";
         loc = STLFR_LOC_NONE;
         length = 0;
-        pos1;
-        pos2;
-        pos3;
+        pos1 = 100;
+        pos2 = 116;
+        pos3 = 144;
     }
 public:
     bool enabled;
     string file;
+    int barcodeSpace;
     int loc;
     int length;
     int pos1;

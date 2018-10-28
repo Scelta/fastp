@@ -124,18 +124,21 @@ bool PairEndProcessor::process(){
     vector<Stats*> postStats1;
     vector<Stats*> preStats2;
     vector<Stats*> postStats2;
+    vector<stlfr*> stlfrStats;
     vector<FilterResult*> filterResults;
     for(int t=0; t<mOptions->thread; t++){
         preStats1.push_back(configs[t]->getPreStats1());
         postStats1.push_back(configs[t]->getPostStats1());
         preStats2.push_back(configs[t]->getPreStats2());
         postStats2.push_back(configs[t]->getPostStats2());
+        stlfrStats.push_back(configs[t]->getStlfrStats());
         filterResults.push_back(configs[t]->getFilterResult());
     }
     Stats* finalPreStats1 = Stats::merge(preStats1);
     Stats* finalPostStats1 = Stats::merge(postStats1);
     Stats* finalPreStats2 = Stats::merge(preStats2);
     Stats* finalPostStats2 = Stats::merge(postStats2);
+    stlfr* finalStlfrStats = stlfr::merge(stlfrStats);
     FilterResult* finalFilterResult = FilterResult::merge(filterResults);
 
     cerr << "Read1 before filtering:"<<endl;
@@ -149,6 +152,10 @@ bool PairEndProcessor::process(){
     cerr << endl;
     cerr << "Read2 aftering filtering:"<<endl;
     finalPostStats2->print();
+
+    cerr << endl;
+    cerr << "stLFR barcode aftering filtering:"<<endl;
+    finalStlfrStats->print();
 
     cerr << endl;
     cerr << "Filtering result:"<<endl;
@@ -177,7 +184,8 @@ bool PairEndProcessor::process(){
     JsonReporter jr(mOptions);
     jr.setDupHist(dupHist, dupMeanGC, dupRate);
     jr.setInsertHist(mInsertSizeHist, peakInsertSize);
-    jr.report(finalFilterResult, finalPreStats1, finalPostStats1, finalPreStats2, finalPostStats2);
+    jr.report(finalFilterResult, finalPreStats1, finalPostStats1,
+      finalPreStats2, finalPostStats2, finalStlfrStats);
 
     // make HTML report
     HtmlReporter hr(mOptions);
@@ -197,6 +205,7 @@ bool PairEndProcessor::process(){
     delete finalPostStats1;
     delete finalPreStats2;
     delete finalPostStats2;
+    delete finalStlfrStats;
     delete finalFilterResult;
 
     if(mOptions->duplicate.enabled) {
@@ -321,6 +330,13 @@ bool PairEndProcessor::processPairEnd(ReadPairPack* pack, ThreadConfig* config){
             // stats the read after filtering
             config->getPostStats1()->statRead(r1);
             config->getPostStats2()->statRead(r2);
+
+            // count stlfr barcode after read survived
+            if(mOptions->stlfr.loc == STLFR_LOC_READ1){
+              config->getStlfrStats()->statStlfr(r1);
+            }else if (mOptions->stlfr.loc == STLFR_LOC_READ2){
+              config->getStlfrStats()->statStlfr(r2);
+            }
 
             readPassed++;
         }
@@ -557,6 +573,7 @@ void PairEndProcessor::producerTask()
 
 void PairEndProcessor::consumerTask(ThreadConfig* config)
 {
+  cout << "stat consumerTask" << endl;
     while(true) {
         if(config->canBeStopped()){
             mFinishedThreads++;

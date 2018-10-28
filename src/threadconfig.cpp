@@ -16,6 +16,9 @@ ThreadConfig::ThreadConfig(Options* opt, int threadId, bool paired){
         mPreStats2 = NULL;
         mPostStats2 = NULL;
     }
+    if(mOptions->stlfr.enabled)
+      mStlfrStats = new stlfr(mOptions);
+
     mWriter1 = NULL;
     mWriter2 = NULL;
 
@@ -117,7 +120,7 @@ void ThreadConfig::markProcessed(long readNum) {
         } else {
             // this thread can be stoped now since all its tasks are done
             // only a part of threads have to deal with the remaining reads
-            if(mOptions->split.number % mOptions->thread >0 
+            if(mOptions->split.number % mOptions->thread >0
                 && mThreadId >= mOptions->split.number % mOptions->thread)
                 mCanBeStopped = true;
         }

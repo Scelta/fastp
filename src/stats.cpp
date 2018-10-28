@@ -409,7 +409,7 @@ void Stats::reportJson(ofstream& ofs, string padding) {
         // not the end;
         if(i != 5-1)
             ofs << ",";
-        ofs << endl; 
+        ofs << endl;
     }
     ofs << padding << "\t" << "}," << endl;
 
@@ -430,7 +430,7 @@ void Stats::reportJson(ofstream& ofs, string padding) {
         // not the end;
         if(i != 6-1)
             ofs << ",";
-        ofs << endl; 
+        ofs << endl;
     }
     ofs << padding << "\t" << "}," << endl;
 
@@ -647,7 +647,7 @@ void Stats::reportHtmlKMER(ofstream& ofs, string filteringType, string readName)
     ofs << "<tr>";
     ofs << "<td></td>";
     // the heading row
-    for(int h=0; h<16; h++) 
+    for(int h=0; h<16; h++)
         ofs << "<td style='color:#333333'>" << kmer2(h) << "</td>";
     ofs << "</tr>\n";
     // content
@@ -674,7 +674,7 @@ string Stats::makeKmerTD(int i, int j) {
     double meanBases = (double)(mBases+1) / mKmerBufLen;
     double prop = val / meanBases;
     double frac = 0.5;
-    if(prop > 2.0) 
+    if(prop > 2.0)
         frac = (prop-2.0)/20.0 + 0.5;
     else if(prop< 0.5)
         frac = prop;
@@ -684,7 +684,7 @@ string Stats::makeKmerTD(int i, int j) {
     int g = r;
     int b = r;
     stringstream ss;
-    ss << "<td style='background:#"; 
+    ss << "<td style='background:#";
     if(r<16)
         ss << "0";
     ss<<hex<<r;
@@ -729,7 +729,7 @@ void Stats::reportHtmlQuality(ofstream& ofs, string filteringType, string readNa
     ofs << "<div class='sub_section_tips'>Value of each position will be shown on mouse over.</div>\n";
     ofs << "<div class='figure' id='plot_" + divName + "'></div>\n";
     ofs << "</div>\n";
-    
+
     string alphabets[5] = {"A", "T", "C", "G", "mean"};
     string colors[5] = {"rgba(128,128,0,1.0)", "rgba(128,0,128,1.0)", "rgba(0,255,0,1.0)", "rgba(0,0,255,1.0)", "rgba(20,20,20,1.0)"};
     ofs << "\n<script type=\"text/javascript\">" << endl;
@@ -804,7 +804,7 @@ void Stats::reportHtmlContents(ofstream& ofs, string filteringType, string readN
     ofs << "<div class='sub_section_tips'>Value of each position will be shown on mouse over.</div>\n";
     ofs << "<div class='figure' id='plot_" + divName + "'></div>\n";
     ofs << "</div>\n";
-    
+
     string alphabets[6] = {"A", "T", "C", "G", "N", "GC"};
     string colors[6] = {"rgba(128,128,0,1.0)", "rgba(128,0,128,1.0)", "rgba(0,255,0,1.0)", "rgba(0,0,255,1.0)", "rgba(255, 0, 0, 1.0)", "rgba(20,20,20,1.0)"};
     ofs << "\n<script type=\"text/javascript\">" << endl;
@@ -853,7 +853,7 @@ void Stats::reportHtmlContents(ofstream& ofs, string filteringType, string readN
         string percentage = to_string((double)count * 100.0 / mBases);
         if(percentage.length()>5)
             percentage = percentage.substr(0,5);
-        string name = base + "(" + percentage + "%)"; 
+        string name = base + "(" + percentage + "%)";
 
         json_str += "{";
         json_str += "x:[" + list2string(x, total) + "],";
@@ -963,4 +963,3 @@ void Stats::deleteOverRepSeqDist() {
         mOverRepSeqDist[seq] = NULL;
     }
 }
-
