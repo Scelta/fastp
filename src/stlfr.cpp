@@ -7,10 +7,11 @@ stlfr::stlfr(Options* opt){
     mOptions = opt;
 }
 
+stlfr::~stlfr(){
+}
+
 void stlfr::ReadBarcodeList(string file)
 {
-  //stringmap sfLFRbarcodeMap, sfLFRbarcodeSnpMap;
-  //cout << "Run into stlfr::ReadBarcodeList. file: "<< file << endl;
   ifstream fin(file);
   string code;
   int id;
@@ -31,8 +32,6 @@ void stlfr::ReadBarcodeList(string file)
   }
   mOptions->stlfr.barcodeSpace = sfLFRbarcodeMap.size();
   #define BSIZE sfLFRbarcodeMap.size();
-  //cout << "Finish loop in stlfr::ReadBarcodeList. sfLFRbarcodeMap size: " << sfLFRbarcodeMap.size() << endl;
-  //cout << "sfLFRbarcodeSnpMap size: " << sfLFRbarcodeSnpMap.size() << endl;
 }
 
 void stlfr::findBarcode(Read* r) {
@@ -40,8 +39,6 @@ void stlfr::findBarcode(Read* r) {
   int offsets[5] = {0, -1, 1, -2, 2};
   int stlfrPOS[3] = {mOptions->stlfr.pos1, mOptions->stlfr.pos2, mOptions->stlfr.pos3};
   int stlfrBarcodeLabels[3];
-  //cout << "\nRun into stlfr::findBarcode. print stlfrPOS: " << stlfrPOS[0] << stlfrPOS[1] << stlfrPOS[2] << endl;
-  //cout << "print sequence: " << r->mSeq.mStr << endl;
 
   //try to match traget sequences with known barcode list;
   while(tried < 5 && min == 0 ){
@@ -74,15 +71,13 @@ void stlfr::findBarcode(Read* r) {
   }else{
     //need to add an hash table for stats
   }
-  //printf("%d\t%d\t%d\n",stlfrBarcodeLabels[0],stlfrBarcodeLabels[1],stlfrBarcodeLabels[2]);
-  //sprintf(tag,"%8s",itoa(stlfrBarcodeLabels[0]));
   r->stlfrB1 = stlfrBarcodeLabels[0];
   r->stlfrB2 = stlfrBarcodeLabels[1];
   r->stlfrB3 = stlfrBarcodeLabels[2];
   char stlfrBarcodeTag[16];
   sprintf(stlfrBarcodeTag, "%04d_%04d_%04d",stlfrBarcodeLabels[0],stlfrBarcodeLabels[1],stlfrBarcodeLabels[2]);
   addstlfrToName(r, stlfrBarcodeTag);
-  printf("Print stlfrBarcodeTag: %s\n",stlfrBarcodeTag);
+  //printf("Print stlfrBarcodeTag: %s\n",stlfrBarcodeTag);
 }
 
 void stlfr::process(Read* r1, Read* r2) {
@@ -117,105 +112,10 @@ void stlfr::addstlfrToName(Read* r, string stlfr){
     nameTailPos = r->mName.find(' ');
   }
   r->mName = r->mName.replace(nameTailPos,0,tag);
-  //cout << "add tagName to : " << r->mName << endl;
 
 }
 
 
 bool stlfr::test() {
   return true;
-}
-
-
-//init for stlfr stats
-void stlfr::stlfrStats(Options* opt){
-  int sbSize = mOptions->stlfr.barcodeSpace + 1;
-  mStlfrBarcode = new int **[sbSize];
-  for(int i=0; i<=sbSize; i++){
-    mStlfrBarcode[i] = new int *[sbSize];
-    for(int j=0; j<=sbSize; i++){
-      mStlfrBarcode[i][j] = new int [sbSize];
-    }
-  }
-  memset(mStlfrBarcode, 0, sizeof(long)*sbSize*sbSize*sbSize);
-  cout << "init stat" << endl;
-  mStlfrValid = 0;
-}
-
-stlfr::~stlfr(){
-  //delete array
-  int sbSize = mOptions->stlfr.barcodeSpace + 1;
-  for(int i=0; i<=sbSize; i++){
-    for(int j=0; j<=sbSize; i++){
-      delete mStlfrBarcode[i][j];
-    }
-    delete mStlfrBarcode[i];
-  }
-  delete mStlfrBarcode;
-}
-
-void stlfr::statStlfr(Read* r){
-  int b1 = r->stlfrB1;
-  int b2 = r->stlfrB2;
-  int b3 = r->stlfrB3;
-  mStlfrBarcode[b1][b2][b3] ++;
-  cout << "check" << endl;
-  printf("stat stlfr: %d_%d_%d:%d\n",b1,b2,b3,mStlfrBarcode[b1][b2][b3]);
-}
-
-//merge stlfr barcode frequency
-stlfr* stlfr::merge(vector<stlfr*>& list) {
-  if(list.size() == 0)
-      return NULL;
-
-  // barcode stats
-  stlfr* s = new stlfr(list[0]->mOptions);
-  int sRange = BSIZE;
-  for(int t=0; t<list.size(); t++) {
-    for(int b1=0; b1<=sRange; b1++) {
-      for(int b2=0; b2<=sRange; b2++) {
-        for(int b3=0; b3<=sRange; b3++) {
-          if(list[t]->mStlfrBarcode[b1][b2][b3] >0 && s->mStlfrBarcode[b1][b2][b3]==0 && b1 != 0 && b2 != 0 && b3 != 0)
-            s->mStlfrValid ++;
-          s->mStlfrBarcode[b1][b2][b3] += list[t]->mStlfrBarcode[b1][b2][b3];
-        }
-      }
-    }
-  }
-  return s;
-}
-
-void stlfr::print() {
-    cerr << "Valid stlfr barcodes found: " << mStlfrValid << endl;
-}
-
-void stlfr::reportJson(ofstream& ofs, string padding) {
-    ofs << "{" << endl;
-
-    // barcode frequency
-    ofs << padding << "\t" << "\"stLFR_barcode_frequency\": {" << endl;
-    int count1 = 0;
-    int count2 = 0;
-    int count3 = 0;
-    for(int b1=0; b1<=barcodeSpace; b1++) {
-      count1 = 0;
-      for(int b2=0; b2<=barcodeSpace; b2++) {
-        count2 = 0;
-        for(int b3=0; b3<=barcodeSpace; b3++) {
-          count3 = 0;
-          long count = mStlfrBarcode[b1][b2][b3];
-          if(mStlfrBarcode[b1][b2][b3] != 0){
-            ofs << padding << "\t\"" << b1 << "_" << b2 << "_" << b3 << "\":" << count;
-            count3 ++;
-          }
-        }
-        count2 += count3;
-      }
-      if(count2 !=0){
-        ofs << "," << endl;
-      }
-    }
-    ofs << padding << "\t" << "}," << endl;
-
-    ofs << padding << "}," << endl;
 }

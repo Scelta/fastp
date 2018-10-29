@@ -22,7 +22,7 @@ void JsonReporter::setInsertHist(long* insertHist, int insertSizePeak) {
 
 extern string command;
 void JsonReporter::report(FilterResult* result, Stats* preStats1, Stats* postStats1,
-  Stats* preStats2, Stats* postStats2, stlfr* stlfrStats) {
+  Stats* preStats2, Stats* postStats2, StlfrStats* stlfrStats) {
     ofstream ofs;
     ofs.open(mOptions->jsonFile, ifstream::out);
     ofs << "{" << endl;

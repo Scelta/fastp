@@ -7,7 +7,7 @@
 #include <string>
 #include "options.h"
 #include "stats.h"
-#include "stlfr.h"
+#include "stlfrStat.h"
 #include "filterresult.h"
 #include <fstream>
 
@@ -21,7 +21,7 @@ public:
     void setDupHist(int* dupHist, double* dupMeanGC, double dupRate);
     void setInsertHist(long* insertHist, int insertSizePeak);
     void report(FilterResult* result, Stats* preStats1, Stats* postStats1,
-      Stats* preStats2 = NULL, Stats* postStats2 = NULL, stlfr* stlfrStats = NULL);
+      Stats* preStats2 = NULL, Stats* postStats2 = NULL, StlfrStats* stlfrStats = NULL);
 
 private:
     Options* mOptions;

@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 #include "stats.h"
-#include "stlfr.h"
+#include "stlfrStat.h"
 #include "writer.h"
 #include "options.h"
 #include "filterresult.h"
@@ -21,7 +21,7 @@ public:
     inline Stats* getPostStats1() {return mPostStats1;}
     inline Stats* getPreStats2() {return mPreStats2;}
     inline Stats* getPostStats2() {return mPostStats2;}
-    inline stlfr* getStlfrStats() {return mStlfrStats;}
+    inline StlfrStats* getStlfrStats() {return mStlfrStats;}
     inline Writer* getWriter1() {return mWriter1;}
     inline Writer* getWriter2() {return mWriter2;}
     inline FilterResult* getFilterResult() {return mFilterResult;}
@@ -52,7 +52,7 @@ private:
     Stats* mPostStats1;
     Stats* mPreStats2;
     Stats* mPostStats2;
-    stlfr* mStlfrStats;
+    StlfrStats* mStlfrStats;
     Writer* mWriter1;
     Writer* mWriter2;
     Options* mOptions;

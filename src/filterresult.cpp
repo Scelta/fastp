@@ -246,7 +246,7 @@ void FilterResult::reportAdapterJson(ofstream& ofs, string padding) {
     const string divName = "filtering_result";
     string labels[4] = {"good_reads", "low_quality_reads", "too_many_N_reads", "too_short_reads"};
     long counts[4] = {mFilterReadStats[PASS_FILTER], mFilterReadStats[FAIL_QUALITY], mFilterReadStats[FAIL_N_BASE], mFilterReadStats[FAIL_LENGTH]};
-    
+
     string json_str = "var data=[";
     json_str += "{values:[" + Stats::list2string(counts, types) + "],";
     json_str += "labels:['good_reads', 'low_quality_reads', 'too_many_N_reads', 'too_short_reads'],";

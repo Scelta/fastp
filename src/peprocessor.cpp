@@ -124,7 +124,7 @@ bool PairEndProcessor::process(){
     vector<Stats*> postStats1;
     vector<Stats*> preStats2;
     vector<Stats*> postStats2;
-    vector<stlfr*> stlfrStats;
+    vector<StlfrStats*> stlfrStats;
     vector<FilterResult*> filterResults;
     for(int t=0; t<mOptions->thread; t++){
         preStats1.push_back(configs[t]->getPreStats1());
@@ -134,13 +134,14 @@ bool PairEndProcessor::process(){
         stlfrStats.push_back(configs[t]->getStlfrStats());
         filterResults.push_back(configs[t]->getFilterResult());
     }
+    if(mOptions->verbose)
+        loginfo("push_back done. Merging reports...\n");
     Stats* finalPreStats1 = Stats::merge(preStats1);
     Stats* finalPostStats1 = Stats::merge(postStats1);
     Stats* finalPreStats2 = Stats::merge(preStats2);
     Stats* finalPostStats2 = Stats::merge(postStats2);
-    stlfr* finalStlfrStats = stlfr::merge(stlfrStats);
+    StlfrStats* finalStlfrStats = StlfrStats::merge(stlfrStats);
     FilterResult* finalFilterResult = FilterResult::merge(filterResults);
-
     cerr << "Read1 before filtering:"<<endl;
     finalPreStats1->print();
     cerr << endl;
@@ -152,10 +153,13 @@ bool PairEndProcessor::process(){
     cerr << endl;
     cerr << "Read2 aftering filtering:"<<endl;
     finalPostStats2->print();
-
-    cerr << endl;
-    cerr << "stLFR barcode aftering filtering:"<<endl;
-    finalStlfrStats->print();
+    if(mOptions->stlfr.enabled){
+      if(mOptions->verbose)
+        loginfo("stlfr enabled. Stating...");
+      cerr << endl;
+      cerr << "stLFR barcode aftering filtering:"<<endl;
+      finalStlfrStats->print();
+    }
 
     cerr << endl;
     cerr << "Filtering result:"<<endl;
@@ -166,6 +170,8 @@ bool PairEndProcessor::process(){
     double* dupMeanGC = NULL;
     double dupRate = 0.0;
     if(mOptions->duplicate.enabled) {
+        if(mOptions->verbose)
+          loginfo("Duplicate enabled. Stating");
         dupHist = new int[mOptions->duplicate.histSize];
         memset(dupHist, 0, sizeof(int) * mOptions->duplicate.histSize);
         dupMeanGC = new double[mOptions->duplicate.histSize];
@@ -181,6 +187,8 @@ bool PairEndProcessor::process(){
     cerr << "Insert size peak (evaluated by paired-end reads): " << peakInsertSize << endl;
 
     // make JSON report
+    if(mOptions->verbose)
+      loginfo("JSon report: Start generating...");
     JsonReporter jr(mOptions);
     jr.setDupHist(dupHist, dupMeanGC, dupRate);
     jr.setInsertHist(mInsertSizeHist, peakInsertSize);
@@ -188,34 +196,43 @@ bool PairEndProcessor::process(){
       finalPreStats2, finalPostStats2, finalStlfrStats);
 
     // make HTML report
+    if(mOptions->verbose)
+      loginfo("html report: Start generating...");
     HtmlReporter hr(mOptions);
     hr.setDupHist(dupHist, dupMeanGC, dupRate);
     hr.setInsertHist(mInsertSizeHist, peakInsertSize);
     hr.report(finalFilterResult, finalPreStats1, finalPostStats1, finalPreStats2, finalPostStats2);
 
     // clean up
+    if(mOptions->verbose)
+      loginfo("clean configs...");
     for(int t=0; t<mOptions->thread; t++){
         delete threads[t];
         threads[t] = NULL;
         delete configs[t];
         configs[t] = NULL;
     }
-
+    if(mOptions->verbose)
+      loginfo("delete finalStats...");
     delete finalPreStats1;
     delete finalPostStats1;
     delete finalPreStats2;
     delete finalPostStats2;
-    delete finalStlfrStats;
+    //delete finalStlfrStats; //return segmentation fault. Maybe cause it contain automatic array
     delete finalFilterResult;
-
+    if(mOptions->verbose)
+      loginfo("delete dupHits...");
     if(mOptions->duplicate.enabled) {
         delete[] dupHist;
         delete[] dupMeanGC;
     }
+    if(mOptions->verbose)
+      loginfo("delete threads and configs...");
 
     delete[] threads;
     delete[] configs;
-
+    if(mOptions->verbose)
+      loginfo("delete writers...");
     if(leftWriterThread)
         delete leftWriterThread;
     if(rightWriterThread)
@@ -223,7 +240,8 @@ bool PairEndProcessor::process(){
 
     if(!mOptions->split.enabled)
         closeOutput();
-
+    if(mOptions->verbose)
+      loginfo("clean done.");
     return true;
 }
 
@@ -332,10 +350,13 @@ bool PairEndProcessor::processPairEnd(ReadPairPack* pack, ThreadConfig* config){
             config->getPostStats2()->statRead(r2);
 
             // count stlfr barcode after read survived
-            if(mOptions->stlfr.loc == STLFR_LOC_READ1){
-              config->getStlfrStats()->statStlfr(r1);
-            }else if (mOptions->stlfr.loc == STLFR_LOC_READ2){
-              config->getStlfrStats()->statStlfr(r2);
+
+            if(mOptions->stlfr.enabled){
+                if(mOptions->stlfr.loc == STLFR_LOC_READ1){
+                  config->getStlfrStats()->statStlfr(r1);
+                }else if (mOptions->stlfr.loc == STLFR_LOC_READ2){
+                  config->getStlfrStats()->statStlfr(r2);
+                }
             }
 
             readPassed++;
@@ -573,7 +594,6 @@ void PairEndProcessor::producerTask()
 
 void PairEndProcessor::consumerTask(ThreadConfig* config)
 {
-  cout << "stat consumerTask" << endl;
     while(true) {
         if(config->canBeStopped()){
             mFinishedThreads++;

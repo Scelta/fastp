@@ -13,6 +13,7 @@
 #include "threadconfig.h"
 #include "filter.h"
 #include "stlfr.h"
+#include "stlfrStat.h"
 #include "umiprocessor.h"
 #include "overlapanalysis.h"
 #include "writerthread.h"

@@ -16,8 +16,12 @@ ThreadConfig::ThreadConfig(Options* opt, int threadId, bool paired){
         mPreStats2 = NULL;
         mPostStats2 = NULL;
     }
-    if(mOptions->stlfr.enabled)
-      mStlfrStats = new stlfr(mOptions);
+    if(mOptions->stlfr.enabled){
+      mStlfrStats = new StlfrStats(mOptions);
+    }else{
+      mStlfrStats = NULL;
+    }
+
 
     mWriter1 = NULL;
     mWriter2 = NULL;
