@@ -47,6 +47,8 @@ public:
 		int stlfrB1;
 		int stlfrB2;
 		int stlfrB3;
+		int HitScore;
+		int offsets;
 	bool mHasQuality;
 };
 

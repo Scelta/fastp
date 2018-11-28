@@ -15,7 +15,7 @@ void stlfr::ReadBarcodeList(string file)
   ifstream fin(file);
   string code;
   int id;
-  string base4[4] = {"A","T","C","G"};
+  string base4[5] = {"A","T","C","G","N"};
 
   while( fin >> code )
   {
@@ -23,9 +23,9 @@ void stlfr::ReadBarcodeList(string file)
     sfLFRbarcodeMap[code] = id;
     //create 1 snp sequence map
     for(int i=0;i<code.length();i++){
-      for(int b=0;b<4;b++){
+      for(int b=0;b<5;b++){
         string snp = code;
-        snp.replace(i,i+1,base4[b]);
+        snp.replace(i,1,base4[b]);
         sfLFRbarcodeSnpMap[snp] = id;
       }
     }
@@ -37,22 +37,26 @@ void stlfr::ReadBarcodeList(string file)
 void stlfr::findBarcode(Read* r) {
   int tried = 0, min = 0;
   int offsets[5] = {0, -1, 1, -2, 2};
+  int HitScore =0 ;
   int stlfrPOS[3] = {mOptions->stlfr.pos1, mOptions->stlfr.pos2, mOptions->stlfr.pos3};
   int stlfrBarcodeLabels[3];
 
   //try to match traget sequences with known barcode list;
+  string tail = "NNN";
+  string tmpCode = r->mSeq.mStr + tail; //extend 3' end for snp matching
   while(tried < 5 && min == 0 ){
-    int HitScore = 0;
+    HitScore = 0;
     min = 2048;
     //int tryOffset = offsets[tried];
     for(int i = 0; i < 3; i++) {
-      string thisCode = r->mSeq.mStr.substr(stlfrPOS[i] + offsets[tried], mOptions->stlfr.length);
+      string thisCode = tmpCode.substr(stlfrPOS[i] + offsets[tried], mOptions->stlfr.length);
+      //cout << tried << ":" << i<< ":" << thisCode << endl;
       if(sfLFRbarcodeMap.count(thisCode) > 0){
         stlfrBarcodeLabels[i] = sfLFRbarcodeMap[thisCode];
-        HitScore += 2* pow(10,i); //for debug
+        HitScore += 2* pow(3,i); //for debug
       }else if (sfLFRbarcodeSnpMap.count(thisCode) > 0){
         stlfrBarcodeLabels[i] = sfLFRbarcodeSnpMap[thisCode];
-        HitScore += pow(10,i);
+        HitScore += pow(3,i);
       }else {
         stlfrBarcodeLabels[i] = 0;
       }
@@ -65,15 +69,13 @@ void stlfr::findBarcode(Read* r) {
     tried ++;
   }
   //for debug
-  if(min > 0 ){
-    tried --;
-    //need to add an hash table for stats
-  }else{
-    //need to add an hash table for stats
-  }
+
   r->stlfrB1 = stlfrBarcodeLabels[0];
   r->stlfrB2 = stlfrBarcodeLabels[1];
   r->stlfrB3 = stlfrBarcodeLabels[2];
+  r->HitScore= HitScore;
+  r->offsets = tried-1;
+  //cout << stlfrBarcodeLabels[0] << "| HitScore: "<< HitScore << "\toffsets: "<< offsets[tried-1] << endl;
   char stlfrBarcodeTag[16];
   sprintf(stlfrBarcodeTag, "%04d_%04d_%04d",stlfrBarcodeLabels[0],stlfrBarcodeLabels[1],stlfrBarcodeLabels[2]);
   addstlfrToName(r, stlfrBarcodeTag);
@@ -84,15 +86,14 @@ void stlfr::process(Read* r1, Read* r2) {
   if(!mOptions->stlfr.enabled)
       return;
 
-  stringmap missScore, stlfrDebugs;
-  int trys = 0, min = 0, hitScore = 0; //hitScore is used for debug stat
+  //stringmap missScore, stlfrDebugs;
+  //int trys = 0, min = 0, hitScore = 0; //hitScore is used for debug stat
   string thisBarcodes;
   if(mOptions->stlfr.loc == STLFR_LOC_READ1){
       findBarcode(r1);
       thisBarcodes = r1->mSTLFR;
       r1->keepFront(mOptions->stlfr.pos1);
-  }
-  else if(mOptions->stlfr.loc == STLFR_LOC_READ2 && r2){
+  }else if(mOptions->stlfr.loc == STLFR_LOC_READ2 && r2){
       findBarcode(r2);
       thisBarcodes = r2->mSTLFR;
       addstlfrToName(r1, thisBarcodes);

@@ -30,6 +30,7 @@ public:
 private:
     Options* mOptions;
     unsigned short int ***mStlfrBarcode;
+    unsigned int **OffsetHit;
     int mStlfrValid;
     int mStlfrMulti;
     int mStlfrMulti10;

@@ -29,6 +29,12 @@ StlfrStats::StlfrStats(Options* opt){
       memset(mStlfrBarcode[i][j], 0, sizeof(unsigned short int)*(sbSize+1));
     }
   }
+  OffsetHit = new unsigned int *[5];
+  memset(OffsetHit, 0, sizeof(unsigned int)*(5));
+  for(int i=0; i<5; i++){
+    OffsetHit[i] = new unsigned int [27];
+    memset(OffsetHit[i], 0, sizeof(unsigned int)*(27));
+  }
 }
 
 StlfrStats::~StlfrStats(){
@@ -41,12 +47,22 @@ StlfrStats::~StlfrStats(){
     delete mStlfrBarcode[i];
   }
   delete mStlfrBarcode;
+
+  for(int i=0; i<5; i++){
+    delete OffsetHit[i];
+  }
+  delete OffsetHit;
 }
 
 void StlfrStats::statStlfr(Read* r){
   int b1 = r->stlfrB1;
   int b2 = r->stlfrB2;
   int b3 = r->stlfrB3;
+
+  int hs = r->HitScore;
+  int os = r->offsets;
+  OffsetHit[os][hs] ++;
+
   if( b1 > mB1 )
     mB1 = b1;
   if( b2 > mB2 )
@@ -69,6 +85,13 @@ StlfrStats* StlfrStats::merge(vector<StlfrStats*>& list) {
   StlfrStats* s = new StlfrStats(list[0]->mOptions);
 
   for(int t=0; t<list.size(); t++) {
+
+    for(int os=0; os<5; os++) {
+      for(int hs=0; hs<27; hs++) {
+        s->OffsetHit[os][hs] += list[t]->OffsetHit[os][hs];
+      }
+    }
+
     if(list[t]->mB1 > s->mB1)
         s->mB1 = list[t]->mB1;
     if(list[t]->mB2 > s->mB2)
@@ -126,6 +149,20 @@ void StlfrStats::print() {
 
 void StlfrStats::reportJson(ofstream& ofs, string padding) {
     ofs << "{" << endl;
+    // barcode match identity
+    ofs << padding << "\t" << "\"stLFR_barcode_identity\": {" << endl;
+    int offsets[5] = {0, -1, 1, -2, 2};
+    for(int t=0; t<5; t++) {
+      int os = offsets[t];
+      ofs << padding << "\t\t" << "\"" <<os<<"\":[";
+      for(int hs=0; hs<27; hs++) {
+        ofs << OffsetHit[t][hs];
+        if(t != 4 || hs != 26 )
+          ofs << ",";
+      }
+      ofs << "]," << endl;
+    }
+    ofs << padding << "\t}," << endl;
 
     // barcode frequency
     ofs << padding << "\t" << "\"stLFR_barcode_frequency\": {" << endl << padding << "\t";
