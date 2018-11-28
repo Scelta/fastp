@@ -128,32 +128,32 @@ void StlfrStats::reportJson(ofstream& ofs, string padding) {
     ofs << "{" << endl;
 
     // barcode frequency
-    ofs << padding << "\t" << "\"stLFR_barcode_frequency\": {" << endl;
+    ofs << padding << "\t" << "\"stLFR_barcode_frequency\": {" << endl << padding << "\t";
     int count1 = 0;
     int count2 = 0;
     int count3 = 0;
     //printf("mB1~mB3: %d,%d,%d\n",mB1,mB2,mB3);
     for(int b1=1; b1<=mB1; b1++) {
-      count1 = 0;
+      count1 ++;
+      bool empty = true;
       for(int b2=1; b2<=mB2; b2++) {
-        count2 = 0;
+        count2 ++;
         for(int b3=1; b3<=mB3; b3++) {
+          count3 ++;
           int count = mStlfrBarcode[b1][b2][b3];
-
-          if(mStlfrBarcode[b1][b2][b3] > 1){
-            //printf("count: %d, mStlfrBarcode[b1][b2][b3]: %d\n",count,mStlfrBarcode[b1][b2][b3]);
+          //printf("count: %d, mStlfrBarcode[b1][b2][b3]: %d\n",count,mStlfrBarcode[b1][b2][b3]);
+          if(count > 0){
+            empty = false;
             char tag[16];
-            sprintf(tag,"%04d_%04d_%04d", b1, b2, b3);
-            ofs << padding << "\t\"" << tag << "\":" << count;
-            count3 ++;
+            sprintf(tag,"\t\"%04d_%04d_%04d\":%d", b1, b2, b3, count);
+            ofs << tag;
+            if(count1 != mB1 && count2 != mB2 && count3 != mB3)
+              ofs << ",";
           }
         }
-        count2 += count3;
-        count3 = 0;
       }
-      if(count2 !=0){
-        ofs << "," << endl;
-      }
+      if(empty==false)
+        ofs << endl << padding << "\t";
     }
     ofs << padding << "\t" << "}," << endl;
 
