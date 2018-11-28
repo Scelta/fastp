@@ -33,3 +33,6 @@ fastp
 *.exe
 *.out
 *.app
+
+# test
+testdata/
