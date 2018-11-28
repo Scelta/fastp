@@ -140,7 +140,7 @@ bool PairEndProcessor::process(){
     Stats* finalPostStats1 = Stats::merge(postStats1);
     Stats* finalPreStats2 = Stats::merge(preStats2);
     Stats* finalPostStats2 = Stats::merge(postStats2);
-    StlfrStats* finalStlfrStats = StlfrStats::merge(stlfrStats);
+    StlfrStats* finalStlfrStats = (mOptions->stlfr.enabled)?StlfrStats::merge(stlfrStats):NULL;
     FilterResult* finalFilterResult = FilterResult::merge(filterResults);
     cerr << "Read1 before filtering:"<<endl;
     finalPreStats1->print();
