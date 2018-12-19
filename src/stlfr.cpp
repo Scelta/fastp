@@ -49,6 +49,10 @@ void stlfr::findBarcode(Read* r) {
     min = 2048;
     //int tryOffset = offsets[tried];
     for(int i = 0; i < 3; i++) {
+      if(stlfrPOS[i] > r->mSeq.mStr.length()){
+        cout << "The position of barcode " << i+1 << "("<<stlfrPOS[i]<<") is out of sequence range("<<r->mSeq.mStr.length()<<"). ";
+        cout << "Try to check the parameters agian." << endl;
+      }
       string thisCode = tmpCode.substr(stlfrPOS[i] + offsets[tried], mOptions->stlfr.length);
       //cout << tried << ":" << i<< ":" << thisCode << endl;
       if(sfLFRbarcodeMap.count(thisCode) > 0){

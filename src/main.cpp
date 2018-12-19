@@ -108,6 +108,7 @@ int main(int argc, char* argv[]){
     cmd.add<int>("stLFR_pos2", 0, "specify start base position of the 2nd stLFR barcode, default is 116", false, 116);
     cmd.add<int>("stLFR_pos3", 0, "specify start base position of the 3rd stLFR barcode,could be 132 or 144, default is 144", false, 144);
     cmd.add<int>("stLFR_len", 0, "if the stLFR barcode is in read1/read2, its length should be provided", false, 10);
+    cmd.add<bool>("stLFR_stat", 0,"Enable stat of barcode frequency(LARGE MEM comsumed), default 0",false,0);
 
     // umi
     cmd.add("umi", 'U', "enable unique molecular identifer (UMI) preprocessing");
@@ -291,6 +292,7 @@ int main(int argc, char* argv[]){
       opt.stlfr.pos1 = cmd.get<int>("stLFR_pos1");
       opt.stlfr.pos2 = cmd.get<int>("stLFR_pos2");
       opt.stlfr.pos3 = cmd.get<int>("stLFR_pos3");
+      opt.stlfr.stat = cmd.get<bool>("stLFR_stat");
     }
 
     // umi

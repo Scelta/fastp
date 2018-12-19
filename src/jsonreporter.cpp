@@ -167,7 +167,7 @@ void JsonReporter::report(FilterResult* result, Stats* preStats1, Stats* postSta
     }
 
     //Report stLFR barcodes frequency
-    if(mOptions->stlfr.enabled && stlfrStats) {
+    if(mOptions->stlfr.stat && stlfrStats) {
       ofs << "\t" << "\"stLFR_barcodes_frequency\": " ;
       stlfrStats -> reportJson(ofs, "\t");
     }
