@@ -39,7 +39,7 @@ void stlfr::findBarcode(Read* r) {
   int offsets[5] = {0, -1, 1, -2, 2};
   int HitScore =0 ;
   int stlfrPOS[3] = {mOptions->stlfr.pos1, mOptions->stlfr.pos2, mOptions->stlfr.pos3};
-  int stlfrBarcodeLabels[3];
+  int stlfrBarcodeLabels[3] = {0, 0, 0};
 
   //try to match traget sequences with known barcode list;
   string tail = "NNN";
@@ -61,8 +61,6 @@ void stlfr::findBarcode(Read* r) {
       }else if (sfLFRbarcodeSnpMap.count(thisCode) > 0){
         stlfrBarcodeLabels[i] = sfLFRbarcodeSnpMap[thisCode];
         HitScore += pow(3,i);
-      }else {
-        stlfrBarcodeLabels[i] = 0;
       }
       if (stlfrBarcodeLabels[i] < min)
         min = stlfrBarcodeLabels[i];
