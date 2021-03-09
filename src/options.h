@@ -101,6 +101,7 @@ public:
         pos1 = 100;
         pos2 = 116;
         pos3 = 144;
+        stat = false;
     }
 public:
     bool enabled;
@@ -112,6 +113,7 @@ public:
     int pos2;
     int pos3;
     string separator;
+    bool stat;
 };
 
 class UMIOptions {

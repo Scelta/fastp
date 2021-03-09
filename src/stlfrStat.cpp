@@ -18,22 +18,24 @@ StlfrStats::StlfrStats(Options* opt){
   mB1 = 0;
   mB2 = 0;
   mB3 = 0;
-  int sbSize = mOptions->stlfr.barcodeSpace; // not include zero
-  mStlfrBarcode = new unsigned short int **[sbSize+1];
-  memset(mStlfrBarcode, 0, sizeof(unsigned short int)*(sbSize+1));
-  for(int i=0; i<=sbSize; i++){
-    mStlfrBarcode[i] = new unsigned short int *[sbSize+1];
-    memset(mStlfrBarcode[i], 0, sizeof(unsigned short int)*(sbSize+1));
-    for(int j=0; j<=sbSize; j++){
-      mStlfrBarcode[i][j] = new unsigned short int [sbSize+1];
-      memset(mStlfrBarcode[i][j], 0, sizeof(unsigned short int)*(sbSize+1));
+  if(mOptions->stlfr.stat){
+    int sbSize = mOptions->stlfr.barcodeSpace; // not include zero
+    mStlfrBarcode = new unsigned short int **[sbSize+1];
+    memset(mStlfrBarcode, 0, sizeof(unsigned short int)*(sbSize+1));
+    for(int i=0; i<=sbSize; i++){
+      mStlfrBarcode[i] = new unsigned short int *[sbSize+1];
+      memset(mStlfrBarcode[i], 0, sizeof(unsigned short int)*(sbSize+1));
+      for(int j=0; j<=sbSize; j++){
+        mStlfrBarcode[i][j] = new unsigned short int [sbSize+1];
+        memset(mStlfrBarcode[i][j], 0, sizeof(unsigned short int)*(sbSize+1));
+      }
     }
-  }
-  OffsetHit = new unsigned int *[5];
-  memset(OffsetHit, 0, sizeof(unsigned int)*(5));
-  for(int i=0; i<5; i++){
-    OffsetHit[i] = new unsigned int [27];
-    memset(OffsetHit[i], 0, sizeof(unsigned int)*(27));
+    OffsetHit = new unsigned int *[5];
+    memset(OffsetHit, 0, sizeof(unsigned int)*(5));
+    for(int i=0; i<5; i++){
+      OffsetHit[i] = new unsigned int [27];
+      memset(OffsetHit[i], 0, sizeof(unsigned int)*(27));
+    }
   }
 }
 

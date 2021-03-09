@@ -140,7 +140,7 @@ bool PairEndProcessor::process(){
     Stats* finalPostStats1 = Stats::merge(postStats1);
     Stats* finalPreStats2 = Stats::merge(preStats2);
     Stats* finalPostStats2 = Stats::merge(postStats2);
-    StlfrStats* finalStlfrStats = (mOptions->stlfr.enabled)?StlfrStats::merge(stlfrStats):NULL;
+    StlfrStats* finalStlfrStats = (mOptions->stlfr.stat)?StlfrStats::merge(stlfrStats):NULL;
     FilterResult* finalFilterResult = FilterResult::merge(filterResults);
     cerr << "Read1 before filtering:"<<endl;
     finalPreStats1->print();
@@ -157,8 +157,10 @@ bool PairEndProcessor::process(){
       if(mOptions->verbose)
         loginfo("stlfr enabled. Stating...");
       cerr << endl;
-      cerr << "stLFR barcode aftering filtering:"<<endl;
-      finalStlfrStats->print();
+      if(mOptions->stlfr.stat){
+        cerr << "stLFR barcode aftering filtering:"<<endl;
+        finalStlfrStats->print();
+      }
     }
 
     cerr << endl;
@@ -351,7 +353,7 @@ bool PairEndProcessor::processPairEnd(ReadPairPack* pack, ThreadConfig* config){
 
             // count stlfr barcode after read survived
 
-            if(mOptions->stlfr.enabled){
+            if(mOptions->stlfr.stat){
                 if(mOptions->stlfr.loc == STLFR_LOC_READ1){
                   config->getStlfrStats()->statStlfr(r1);
                 }else if (mOptions->stlfr.loc == STLFR_LOC_READ2){
@@ -494,7 +496,6 @@ void PairEndProcessor::consumePack(ThreadConfig* config){
 
     //lock.unlock();
     //mRepo.repoNotFull.notify_all();
-
     processPairEnd(data, config);
 
 }
